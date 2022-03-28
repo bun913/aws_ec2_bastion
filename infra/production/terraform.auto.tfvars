@@ -28,19 +28,13 @@ db_subnets = [
 
 vpc_endpoint = {
   "interface" : [
-    # ECSからECRにイメージをpullするため
-    "com.amazonaws.ap-northeast-1.ecr.dkr",
-    "com.amazonaws.ap-northeast-1.ecr.api",
-    # CloudWatchLogsにログ出力のため
-    "com.amazonaws.ap-northeast-1.logs",
-    # SSM SessionManagerで接続するため
-    "com.amazonaws.ap-northeast-1.ssmmessages",
+    # SSMでBastionに接続するため
+    "com.amazonaws.ap-northeast-1.ec2messages",
     "com.amazonaws.ap-northeast-1.ssm",
-    # SecretManagerから環境変数を取得するため
-    # "com.amazonaws.ap-northeast-1.secretsmanager"
+    "com.amazonaws.ap-northeast-1.ssmmessages",
   ],
   "gateway" : [
-    # ECSに必要
+    # yum経由での各種パッケージの取得に利用
     "com.amazonaws.ap-northeast-1.s3"
   ]
 }

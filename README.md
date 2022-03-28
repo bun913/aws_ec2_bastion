@@ -37,6 +37,10 @@ WIP: 構成図
 
 DBクライアントを使う必要がない場合などは、素直に構成1を使った方が良さそう。
 
+【参考】
+
+https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-getting-started-enable-ssh-connections.html
+
 ## 手順
 
 ### 事前準備
