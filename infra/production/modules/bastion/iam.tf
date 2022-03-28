@@ -1,37 +1,28 @@
-# ECSタスク実行ロール
-resource "aws_iam_role" "bastion_task_exec_role" {
-  name               = "${var.prefix}-bastion-task-execution"
-  assume_role_policy = file("${path.module}/iam/ecs_assume_policy.json")
+# ManagedRoleを取得
+data "aws_iam_policy" "ssmManagedPolicy" {
+  arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+# EC2 Role
+resource "aws_iam_role" "bastion_instance_role" {
+  name = "${var.prefix}-bastion"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
 }
 
-# TODO: タスク実行ロールの権限を最小にする
-data "aws_iam_policy" "ecs_task_exec" {
-  arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-# CloudWatchLogの権限もタスク実行ロールに与える
-data "aws_iam_policy" "cloudwatch" {
-  arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-}
-
-resource "aws_iam_role_policy_attachment" "bastion_task_exec_role" {
-  role       = aws_iam_role.bastion_task_exec_role.name
-  policy_arn = data.aws_iam_policy.ecs_task_exec.arn
-}
-
-
-resource "aws_iam_role_policy_attachment" "ecs_task_exec_logs" {
-  role       = aws_iam_role.bastion_task_exec_role.name
-  policy_arn = data.aws_iam_policy.cloudwatch.arn
-}
-# タスクロールを作成する(ECS Exec実行等)
-resource "aws_iam_role" "ecs_task" {
-  name               = "${var.prefix}-ecs-task"
-  assume_role_policy = file("${path.module}/iam/ecs_assume_policy.json")
-}
-
-resource "aws_iam_role_policy" "ecs_exec" {
-  name = "${var.prefix}-ecs-task"
-  role = aws_iam_role.ecs_task.id
-
-  policy = file("${path.module}/iam/ecs_task_role_policy.json")
+# AttachRole
+resource "aws_iam_role_policy_attachment" "bastion_instance_role_attach" {
+  role       = aws_iam_role.bastion_instance_role.name
+  policy_arn = data.aws_iam_policy.ssmManagedPolicy.arn
 }

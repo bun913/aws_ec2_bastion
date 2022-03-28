@@ -42,13 +42,9 @@ module "network" {
 module "bastion" {
   source = "./modules/bastion/"
 
-  prefix       = local.default_prefix
-  region       = local.region
-  ecr_base_uri = local.ecr_base_uri
-  vpc_id       = module.network.vpc_id
-  db_subnet_cidrs = [
-    for sb in var.db_subnets : sb.cidr
-  ]
+  prefix            = local.default_prefix
+  vpc_id            = module.network.vpc_id
+  private_subnet_id = module.network.private_subnet_ids[0]
 
   tags = var.tags
 }

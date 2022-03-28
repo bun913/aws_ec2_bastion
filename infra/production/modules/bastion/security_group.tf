@@ -1,6 +1,6 @@
 resource "aws_security_group" "bastion" {
-  name        = "${var.prefix}-bastion"
-  description = "Egress TO DB"
+  name        = "${var.prefix}-bastion-sg"
+  description = "Egress All"
   vpc_id      = var.vpc_id
 
   egress {
