@@ -15,4 +15,8 @@ resource "aws_instance" "bastion" {
   subnet_id              = var.private_subnet_id
   vpc_security_group_ids = [aws_security_group.bastion.id]
   user_data              = file("${path.module}/user_data.sh")
+  # NOTE: キーペアはあらかじめ作成した名前で指定が必要
+  key_name = var.key_pair_name
+
+  tags = merge(var.tags, { Name = "${var.prefix}-bastion" })
 }

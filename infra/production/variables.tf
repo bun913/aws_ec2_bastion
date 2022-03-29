@@ -22,10 +22,18 @@ variable "private_subnets" {
   }))
   description = "Private Subnets For Bastion"
 }
-variable "vpc_endpoint" {
-  # TODO: 型を丁寧に書く
-  type        = map(any)
-  description = "vpc_endpoint_setting"
+variable "public_subnets" {
+  type = list(object({
+    name = string
+    az   = string
+    cidr = string
+  }))
+  description = "Public Subnets For NAT"
+}
+variable "key_pair_name" {
+  type        = string
+  description = "あらかじめ作成したキーペアの名前"
+  sensitive   = true
 }
 variable "tags" {
   type = map(string)

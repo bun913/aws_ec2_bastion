@@ -4,7 +4,7 @@
 
 踏み台を構成するにあたり、以下2パターンを検討。
 
-今回は構成1をTerraformで実装します。
+今回は構成2をTerraformで実装します。(構成1は別リポジトリで実装)
 
 ### 構成1
 
@@ -18,11 +18,9 @@ https://github.com/bun913/aws_fargate_bastion
 
 今回活用するパターン
 
-EC2インスタンスを作成して、キーペアはあらかじめローカルPCで作成しておく。
+EC2インスタンスを作成して、キーペアはあらかじめ作成しておく。
 
-キーペアの秘密鍵はSecretsManagerで管理して、各開発者に配布する。
-
-WIP: 構成図
+![構成図](docs/images/system_configuration.png)
 
 この構成のメリット
 
@@ -34,6 +32,7 @@ WIP: 構成図
 
 - EC2を立てるので、Fargateに比べたら管理する範囲が広くなる
   - OSもシステム管理者側で管理しないといけなくなる・・
+  - PatchManagerで最低限の脆弱性の自動更新は入れているが
 
 DBクライアントを使う必要がない場合などは、素直に構成1を使った方が良さそう。
 
@@ -45,17 +44,6 @@ https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manag
 
 ### 事前準備
 
-### globalリソース群の作成
-
-今回はECRを作成して、イメージのプッシュまで行う。
-
-```bash
-cd infra/global
-terraform init
-terraform plan
-terraform apply
-```
-
 ### productionリソース群の作成
 
 今回は本番環境を想定して、productionというディレクトリ名にしている。
@@ -63,33 +51,66 @@ terraform apply
 
 
 ```bash
-cd ../production
+cd infra/production
 terraform init
 terraform plan
 terraform apply
 ```
 
-## ローカルからの実行
+## 踏み台への接続確認
+
+### AWSマネジメントコンソールからの確認
+
+AWSマネジメントコンソールにログイン
+
+EC2のサービスへ移動する
+
+今回作成したインスタンスを選択し、右上の「接続」を押下
+
+![接続](docs/images/console_ec2.png)
+
+「セッションマネージャー」のタグを選び、右下の「接続」を押下
+
+![接続2](docs/images/console_connect.png)
+
+以下のようにシェルが表示されれば確認OK
+
+
+![シェル表示](docs/images/shell.png)
+
+### ローカルPCから確認
+
+
+あらかじめ接続元のローカルPCにSessionManagerプラグインのインストールが必要であるため、公式の手順に沿ってインストール
+
+https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-working-with-install-plugin.html
+
+
+次に公式の手順に沿って、 ~/.ssh/configを書き換える
+
+```
+# SSH over Session Manager
+host i-* mi-*
+    ProxyCommand sh -c "aws ssm start-session --target %h --document-name AWS-StartSSHSession --parameters 'portNumber=%p'"
+```
+
+https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/session-manager-getting-started-enable-ssh-connections.html
+
+最後に sshコマンドで接続を確認
 
 ```bash
-# タスクをCLIで起動
- ./run_task.sh prd
-# task_idが出力されればOK
-# 出力されたタスクIDを第2引数に渡す
-./ecs_exec.sh prd ${TASKのID}
+ssh ec2-user@インスタンスID -i 鍵へのパス
 ```
 
-以下のように出力されればセッション開始
+以下のようにログインできればOK
 
 ```
-The Session Manager plugin was installed successfully. Use the AWS CLI to start a session.
-Starting session with SessionId: ecs-execute-command-
-```
 
-RDSに接続する場合は、以下のようにシェルスクリプトを実行する
+       __|  __|_  )
+       _|  (     /   Amazon Linux 2 AMI
+      ___|\___|___|
 
-```bash
-mysql -h ${RDSのライターのエンドポイント} -u root -p
-> Terraformで設定したパスワードを入力する
+https://aws.amazon.com/amazon-linux-2/
+$
 ```
 
