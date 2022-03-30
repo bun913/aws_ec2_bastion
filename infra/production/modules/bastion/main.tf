@@ -18,5 +18,13 @@ resource "aws_instance" "bastion" {
   # NOTE: キーペアはあらかじめ作成した名前で指定が必要
   key_name = var.key_pair_name
 
+  metadata_options {
+    # NOTE: インスタンスメタデータ取得をする場合の設定(不要ならdisabledに)
+    http_endpoint = "enabled"
+    # IMDSv2の利用(セキュリティ強化)
+    # https://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html
+    http_tokens = "required"
+  }
+
   tags = merge(var.tags, { Name = "${var.prefix}-bastion" })
 }
